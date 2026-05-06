@@ -1,0 +1,8 @@
+Flask>=3.0,<4.0
+opencv-python-headless>=4.10
+ultralytics>=8.3
+waitress>=3.0
+torch
+torchvision
+numpy
+pillow

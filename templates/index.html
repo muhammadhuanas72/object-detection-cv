@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Vision Desk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero-band">
+            <div class="hero-copy">
+                <p class="eyebrow">Object Detection Studio</p>
+                <h1>Run your YOLO tracker from the browser.</h1>
+                <p class="hero-text">
+                    Upload a video for processed output, or turn on live webcam tracking from the same page.
+                </p>
+            </div>
+            <div class="meta-panel">
+                <div class="meta-row">
+                    <span>Model</span>
+                    <strong>{{ model_path }}</strong>
+                </div>
+                <div class="meta-row">
+                    <span>Camera index</span>
+                    <strong>{{ camera_index }}</strong>
+                </div>
+                <div class="meta-row">
+                    <span>Formats</span>
+                    <strong>{{ supported_formats }}</strong>
+                </div>
+            </div>
+        </section>
+
+        {% if not model_exists %}
+        <section class="alert-band">
+            <p>The configured model file was not found. Set <code>YOLO_MODEL_PATH</code> to a valid <code>.pt</code> file before running detection.</p>
+        </section>
+        {% endif %}
+
+        <section class="workspace-grid">
+            <section class="tool-panel">
+                <div class="panel-heading">
+                    <p class="panel-kicker">Upload Video</p>
+                    <h2>Process a fresh recording</h2>
+                </div>
+
+                <form id="upload-form" class="stack">
+                    <label class="file-drop" for="video-input">
+                        <input id="video-input" name="video" type="file" accept="video/*" required>
+                        <span class="file-title">Choose video</span>
+                        <span class="file-subtitle">MP4, AVI, MOV, MKV, or WEBM</span>
+                    </label>
+                    <label class="field-stack" for="speed-mode">
+                        <span class="field-label">Processing mode</span>
+                        <select id="speed-mode" name="speed_mode">
+                            {% for mode, details in speed_profiles.items() %}
+                            <option value="{{ mode }}" {% if mode == default_speed_mode %}selected{% endif %}>
+                                {{ details.label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <span id="speed-help" class="field-help">
+                            {{ speed_profiles[default_speed_mode].description }}
+                        </span>
+                    </label>
+                    <button id="upload-button" class="primary-button" type="submit">Run tracking</button>
+                </form>
+
+                <p id="upload-status" class="status-text" aria-live="polite">Waiting for a file.</p>
+                <div id="progress-shell" class="progress-shell hidden" aria-hidden="true">
+                    <div class="progress-track">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                    <p id="progress-meta" class="progress-meta">0%</p>
+                </div>
+
+                <div id="result-shell" class="result-shell hidden">
+                    <video id="result-video" controls playsinline></video>
+                    <a id="download-link" class="ghost-button" href="#" download>Download output</a>
+                </div>
+
+                <section id="upload-summary-shell" class="summary-shell hidden">
+                    <div class="summary-heading">
+                        <h3>Detected objects</h3>
+                        <p id="upload-summary-basis" class="summary-basis"></p>
+                    </div>
+                    <p id="upload-summary-empty" class="summary-empty hidden">No objects were counted in the processed frames.</p>
+                    <div id="upload-summary-list" class="summary-list"></div>
+                </section>
+            </section>
+
+            <section class="tool-panel">
+                <div class="panel-heading">
+                    <p class="panel-kicker">Live Camera</p>
+                    <h2>Track objects from your webcam</h2>
+                </div>
+
+                <label class="field-stack" for="camera-source">
+                    <span class="field-label">Camera source</span>
+                    <input
+                        id="camera-source"
+                        name="camera_source"
+                        type="text"
+                        value="{{ default_camera_source }}"
+                        placeholder="0 or http://phone-camera-stream"
+                    >
+                    <span class="field-help">
+                        Use <code>0</code> for the computer webcam. For a phone camera, paste a stream URL from an IP camera app.
+                    </span>
+                </label>
+
+                <div class="control-row">
+                    <button id="start-webcam" class="primary-button" type="button">Start webcam</button>
+                    <button id="stop-webcam" class="ghost-button" type="button" disabled>Stop webcam</button>
+                </div>
+
+                <p id="webcam-status" class="status-text" aria-live="polite">
+                    Ready. This mode reads the camera source from the machine running Flask.
+                </p>
+
+                <div class="stream-shell">
+                    <img id="webcam-stream" class="hidden" alt="Live webcam tracking stream">
+                    <div id="stream-placeholder" class="stream-placeholder">
+                        <span>Live tracking preview will appear here.</span>
+                    </div>
+                </div>
+
+                <section id="live-summary-shell" class="summary-shell hidden">
+                    <div class="summary-heading">
+                        <h3>Live object counts</h3>
+                        <p id="live-summary-basis" class="summary-basis"></p>
+                    </div>
+                    <div class="summary-group">
+                        <p class="summary-group-label">Current frame</p>
+                        <div id="live-current-list" class="summary-list"></div>
+                    </div>
+                    <div class="summary-group">
+                        <p class="summary-group-label">Seen so far</p>
+                        <div id="live-total-list" class="summary-list"></div>
+                    </div>
+                </section>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        window.appConfig = {
+            modelExists: {{ model_exists|tojson }},
+            speedProfiles: {{ speed_profiles|tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>
