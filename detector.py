@@ -17,7 +17,7 @@ os.environ.setdefault("YOLO_CONFIG_DIR", str(ULTRALYTICS_CONFIG_DIR))
 from ultralytics import YOLO
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
-BROWSER_VIDEO_CODEC = "avc1"
+BROWSER_VIDEO_CODEC = "mp4v"
 TRACK_CONFIDENCE = float(os.environ.get("YOLO_TRACK_CONFIDENCE", "0.45"))
 TRACK_NMS_IOU = float(os.environ.get("YOLO_TRACK_NMS_IOU", "0.55"))
 MIN_TRACK_FRAMES = int(os.environ.get("YOLO_MIN_TRACK_FRAMES", "5"))
